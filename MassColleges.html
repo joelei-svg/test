@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>Massachusetts Colleges Map</title>
+<meta name="viewport" content="initial-scale=1,maximum-scale=1,user-scalable=no">
+<link href="https://api.mapbox.com/mapbox-gl-js/v3.15.0/mapbox-gl.css" rel="stylesheet">
+<script src="https://api.mapbox.com/mapbox-gl-js/v3.15.0/mapbox-gl.js"></script>
+<style>
+body { margin: 0; padding: 0; }
+#map { position: absolute; top: 0; bottom: 0; width: 100%; }
+
+h2,
+h3 {
+  margin: 10px;
+  font-size: 18px;
+}
+
+h3 {
+  font-size: 16px;
+}
+
+p {
+  margin: 8px;
+}
+
+/**
+* Create a position for the map
+* on the page */
+#map {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 100%;
+}
+
+/**
+* Set rules for how the map overlays
+* (information box and legend) will be displayed
+* on the page. */
+.map-overlay {
+  position: absolute;
+  bottom: 0;
+  right: 0;
+  background: #fff;
+  margin-right: 20px;
+  font-family: Ariel, sans-serif;
+  overflow: auto;
+  border-radius: 3px;
+}
+
+#features {
+  top: 0;
+  height: 150px;
+  margin-top: 20px;
+  width: 250px;
+}
+
+#legend {
+  padding: 10px;
+  box-shadow: 0 1px 2px rgba(0 0 0 0.1);
+  line-height: 18px;
+  height: 40px;
+  margin-bottom: 40px;
+  width: 70px;
+}
+
+.legend-key {
+  display: inline-block;
+  border-radius: 20%;
+  width: 10px;
+  height: 10px;
+  margin-right: 5px;
+}
+
+</style>
+</head>
+<body>
+<div id="map"></div>
+
+<div class="map-overlay" id="features">
+  <h2>An Interactive Map of Public and Private Colleges in Massachusetts
+  </h2>
+  <div id="pd"><p>Zoom in for college names. Click for more information.
+  </p></div>
+</div>
+<div class="map-overlay" id="legend"></div>
+
+<script>
+  mapboxgl.accessToken = 'pk.eyJ1Ijoiam9lbGVpIiwiYSI6ImNtbmYxcXpycDA0N2UzMnEyNjJlZHA4ZW0ifQ.tdtC7m1Ao-b1xWEEXabwZg';
+  const map = new mapboxgl.Map({
+    container: 'map', // container ID
+    center: [-71.97902, 42.38515],
+    style: 'mapbox://styles/joelei/cmnlvj2ie007101p11yrz4nwm',  //     mapbox://styles/{username}/{style_id}
+    zoom:7// starting zoom
+  });
+
+    // Our custom layers
+  const layers = [ 'colleges-marker', 'colleges-circles']
+
+  // Iterate over each layer and add our interactions
+  layers.forEach((layer, index) => {
+    
+        // Add Click interaction
+        map.addInteraction(`click-marker-${index}`, {
+            type: 'click',
+            target: { layerId: layer },
+            handler: (e) => {
+                const popup = new mapboxgl.Popup({ offset: [0, -15] })
+            .setLngLat(e.feature.geometry.coordinates)
+            .setHTML(
+                `<h3>${e.feature.properties.ADDRESS}</h3>
+                <p>${e.feature.properties.MAIN_TEL}</p>
+                <p>${e.feature.properties.CATEGORY}</p>
+                <p>${e.feature.properties.NCES_TYPE}</p>
+                <p>${e.feature.properties.URL}</p>`
+            )
+            .addTo(map);
+            }
+        });
+
+        // Add mouse-enter interaction
+        map.addInteraction(`mouse-enter-marker-${index}`, {
+            type: 'mouseenter',
+            target: { layerId: layer },
+            handler: (e) => {
+                console.log(map.style.cursor);
+                map.getCanvas().style.cursor = 'pointer';
+            }
+        });
+
+        map.addInteraction(`mouse-leave-marker-${index}`, {
+            type: 'mouseleave',
+            target: { layerId: layer },
+            handler: (e) => {
+                map.getCanvas().style.cursor = '';
+            }
+        });
+
+  })
+
+  map.on('load', () => {
+
+   const layers = [
+  'Private',
+  'Public'
+];
+const colors = [
+  '#ec834b',
+  '#1348f6'
+
+];
+
+  const legend = document.getElementById('legend');
+
+layers.forEach((layer, i) => {
+  const color = colors[i];
+  const item = document.createElement('div');
+  const key = document.createElement('span');
+  key.className = 'legend-key';
+  key.style.backgroundColor = color;
+
+  const value = document.createElement('span');
+  value.innerHTML = `${layer}`;
+  item.appendChild(key);
+  item.appendChild(value);
+  legend.appendChild(item);
+});
+
+map.getCanvas().style.cursor = 'default';
+
+});
+
+</script>
+</body>
+</html>
